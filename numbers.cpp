@@ -30,3 +30,36 @@ int power(int base, int exp) {
     }
     return res;
 }
+
+// divisors
+vector<int> getDivisors(int n) {
+    vector<int> divisors;
+    for (int i = 1; i * i <= n; i++) {
+        if (n % i == 0) {
+            divisors.push_back(i);
+            if (i * i != n) {
+                divisors.push_back(n / i);
+            }
+        }
+    }
+    return divisors;
+}
+
+ll countDivisors(ll x) {
+    ll count = 1;
+    for (ll i = 2; i * i <= x; i++) {
+        if (x % i == 0) {
+            ll exponent = 0;
+            while (x % i == 0) {
+                x /= i;
+                exponent++;
+            }
+            count *= (exponent + 1);
+        }
+    }
+    if (x > 1) { 
+        count <<=1;
+    }
+    return count;
+}
+

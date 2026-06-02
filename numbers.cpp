@@ -18,6 +18,27 @@ void sieve() {
 }
 // smallest prime factor
 
+// Generate an array of only prime numbers up to n
+vector<int> generatePrimes(int n) {
+    vector<bool> is_prime(n + 1, true);
+    is_prime[0] = is_prime[1] = false;
+
+    for (int p = 2; p * p <= n; p++) {
+        if (is_prime[p]) {
+            for (int i = p * p; i <= n; i += p)
+                is_prime[i] = false;
+        }
+    }
+
+    vector<int> primes;
+    for (int p = 2; p <= n; p++) {
+        if (is_prime[p]) {
+            primes.push_back(p);
+        }
+    }
+    return primes;
+}
+// Generate an array of only prime numbers up to n
 
 int power(int base, int exp) {
     int res = 1;
@@ -31,7 +52,7 @@ int power(int base, int exp) {
     return res;
 }
 
-// divisors
+// all divisors
 vector<int> getDivisors(int n) {
     vector<int> divisors;
     for (int i = 1; i * i <= n; i++) {
@@ -44,6 +65,7 @@ vector<int> getDivisors(int n) {
     }
     return divisors;
 }
+// all divisors
 
 ll countDivisors(ll x) {
     ll count = 1;
@@ -63,3 +85,6 @@ ll countDivisors(ll x) {
     return count;
 }
 
+double log_custom(double base, double x) {
+    return log2(x) /log2(base);
+}

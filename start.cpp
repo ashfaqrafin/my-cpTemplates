@@ -13,13 +13,14 @@ const int mod = 1e9 + 7;
 #define sq(a) (a) * (a)
 #define int long long
 #define ll long long
-#define ld long double
+#define ld long double 
 #define vl __int128
 #define MAX LLONG_MAX
 #define MIN LLONG_MIN
 #define all(container) container.begin(), container.end()
 #define ff first
 #define ss second
+#define pb push_back
 #define sz(x) ((int)(x).size())
 #define endl '\n'
 // loop
@@ -28,7 +29,7 @@ const int mod = 1e9 + 7;
 #define repa(v, container) for (auto &v : container)
 // vector
 typedef vector<int> vi;
-typedef vector<vector<int,int>> vvi;
+typedef vector<vector<int>> vvi;
 typedef vector<char> vc;
 typedef vector<bool> vb;
 typedef vector<string> s;
@@ -46,16 +47,28 @@ int mod_inv(int x) {x %= mod;return power_mod(x, mod - 2);}
 int mod_div(int x, int y) {x %= mod; y %= mod;return mod_mul(x, mod_inv(y));}
 // modular operations
 
+// bit operations
+#define setcnt(x)   (popcount(static_cast<unsigned long long>(x)))
+#define is_pow2(x)  ((x) > 0 && has_single_bit(static_cast<unsigned long long>(x)))
+#define nxt_pow2(x) (bit_ceil(static_cast<unsigned long long>(x)))
+#define prv_pow2(x) (bit_floor(static_cast<unsigned long long>(x)))
+#define msb_idx(x)  ((x) == 0 ? -1 : (int)bit_width(static_cast<unsigned long long>(x)) - 1)
+
+// numbers
+ld logC(ld base, ld x) {return log2(x) /log2(base);} 
+
+
 void solve(){
 
 }
 
 
+
 signed main(void){
-    IOS;
+    ios;
     int t;
     cin >> t;
-    while (t--)solve();
+    while(t--)solve();
 
-    return 0;
+    return 0; 
 }

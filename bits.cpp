@@ -1,0 +1,12 @@
+// bit operations
+#define setcnt(x)   (popcount(static_cast<unsigned long long>(x)))
+#define is_pow2(x)  ((x) > 0 && has_single_bit(static_cast<unsigned long long>(x)))
+#define nxt_pow2(x) (bit_ceil(static_cast<unsigned long long>(x)))
+#define prv_pow2(x) (bit_floor(static_cast<unsigned long long>(x)))
+#define msb_idx(x)  ((x) == 0 ? -1 : (int)bit_width(static_cast<unsigned long long>(x)) - 1)
+#define lzero(x)    (countl_zero(static_cast<unsigned long long>(x)))
+#define rzero(x)    (countr_zero(static_cast<unsigned long long>(x)))
+#define lone(x)     (countl_one(static_cast<unsigned long long>(x)))
+#define rone(x)     (countr_one(static_cast<unsigned long long>(x)))
+#define rotl(x, s)  (rotl(static_cast<unsigned long long>(x), s))
+#define rotr(x, s)  (rotr(static_cast<unsigned long long>(x), s))

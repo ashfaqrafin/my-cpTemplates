@@ -61,6 +61,7 @@ template<class t> bool is_prime(t n){if(n<2)return 0;if(n%2==0)return n==2;for(t
 ld logc(ld base, ld x) {return log2(x) /log2(base);} 
 ll xor_upto(int n){return n%4==0?n:n%4==1?1:n%4==2?n+1:0;}
 ll power(int base, int exp) { int res = 1; while (exp > 0) { if (exp&1) { res *= base; } base *= base; exp>>=1; } return res; }
+//rest
 
 void solve(){
 }

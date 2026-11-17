@@ -4,6 +4,8 @@ using namespace std;
 using ll = long long;
 const ll INF = numeric_limits<ll>::max() / 4;
 
+// ============================== Disjoint Set Union ==============================
+
 struct DSU {
     vector<int> parent, size;
 
@@ -26,9 +28,13 @@ struct DSU {
     }
 };
 
-// Depth-first traversal from start. Unreachable vertices are omitted.
+// =========================== Graph Traversals ===========================
+
+// Iterative DFS. Unreachable vertices are omitted.
 vector<int> dfs(const vector<vector<int>>& adj, int start) {
-    vector<bool> visited(adj.size());
+    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+
+    vector<bool> visited(adj.size(), false);
     vector<int> order;
     stack<int> st;
     st.push(start);
@@ -47,6 +53,113 @@ vector<int> dfs(const vector<vector<int>>& adj, int start) {
         }
     }
     return order;
+}
+
+// Recursive DFS alternative. Prefer this for small or moderate depths.
+vector<int> dfsRecursive(const vector<vector<int>>& adj, int start) {
+    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+
+    vector<bool> visited(adj.size(), false);
+    vector<int> order;
+
+    function<void(int)> visit = [&](int u) {
+        visited[u] = true;
+        order.push_back(u);
+        for (int v : adj[u]) {
+            if (!visited[v]) visit(v);
+        }
+    };
+
+    visit(start);
+    return order;
+}
+
+// Iterative grid DFS. '#' is blocked; returns visited cells in DFS order.
+vector<pair<int, int>> gridDfs(const vector<string>& grid, pair<int, int> start) {
+    if (grid.empty() || grid[0].empty()) return {};
+    int n = grid.size();
+    int m = grid[0].size();
+    const int dr[] = {-1, 1, 0, 0};
+    const int dc[] = {0, 0, -1, 1};
+    vector<vector<bool>> visited(n, vector<bool>(m));
+    vector<pair<int, int>> order;
+    stack<pair<int, int>> st;
+
+    auto [sr, sc] = start;
+    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
+        return order;
+    }
+
+    st.push(start);
+    visited[sr][sc] = true;
+    while (!st.empty()) {
+        auto [r, c] = st.top();
+        st.pop();
+        order.push_back({r, c});
+        for (int k = 3; k >= 0; --k) {
+            int nr = r + dr[k], nc = c + dc[k];
+            if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
+            if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
+            visited[nr][nc] = true;
+            st.push({nr, nc});
+        }
+    }
+    return order;
+}
+
+// Recursive grid DFS alternative.
+vector<pair<int, int>> gridDfsRecursive(const vector<string>& grid,
+                                        pair<int, int> start) {
+    if (grid.empty() || grid[0].empty()) return {};
+
+    int n = grid.size();
+    int m = grid[0].size();
+    const int dr[] = {-1, 1, 0, 0};
+    const int dc[] = {0, 0, -1, 1};
+    vector<vector<bool>> visited(n, vector<bool>(m, false));
+    vector<pair<int, int>> order;
+
+    auto [sr, sc] = start;
+    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
+        return order;
+    }
+
+    function<void(int, int)> visit = [&](int r, int c) {
+        visited[r][c] = true;
+        order.push_back({r, c});
+
+        for (int k = 0; k < 4; ++k) {
+            int nr = r + dr[k];
+            int nc = c + dc[k];
+            if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
+            if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
+            visit(nr, nc);
+        }
+    };
+
+    visit(sr, sc);
+    return order;
+}
+
+// Unweighted graph BFS. Unreachable vertices have distance -1.
+vector<int> bfs(const vector<vector<int>>& adj, int start) {
+    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+
+    vector<int> distance(adj.size(), -1);
+    queue<int> q;
+    q.push(start);
+    distance[start] = 0;
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        for (int v : adj[u]) {
+            if (distance[v] != -1) continue;
+            distance[v] = distance[u] + 1;
+            q.push(v);
+        }
+    }
+    return distance;
 }
 
 // Four-direction grid BFS. '#' is blocked; unreachable cells have distance -1.
@@ -80,60 +193,12 @@ vector<vector<int>> gridBfs(const vector<string>& grid, pair<int, int> start) {
     return distance;
 }
 
-// Four-direction grid DFS. '#' is blocked; returns visited cells in DFS order.
-vector<pair<int, int>> gridDfs(const vector<string>& grid, pair<int, int> start) {
-    if (grid.empty() || grid[0].empty()) return {};
-    int n = grid.size();
-    int m = grid[0].size();
-    const int dr[] = {-1, 1, 0, 0};
-    const int dc[] = {0, 0, -1, 1};
-    vector<vector<bool>> visited(n, vector<bool>(m));
-    vector<pair<int, int>> order;
-    stack<pair<int, int>> st;
+// =========================== Shortest Paths ===========================
 
-    auto [sr, sc] = start;
-    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
-        return order;
-    }
-
-    st.push(start);
-    visited[sr][sc] = true;
-    while (!st.empty()) {
-        auto [r, c] = st.top();
-        st.pop();
-        order.push_back({r, c});
-        for (int k = 3; k >= 0; --k) {
-            int nr = r + dr[k], nc = c + dc[k];
-            if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
-            if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
-            visited[nr][nc] = true;
-            st.push({nr, nc});
-        }
-    }
-    return order;
-}
-
-// Unweighted shortest paths from start. Unreachable vertices have distance -1.
-vector<int> bfs(const vector<vector<int>>& adj, int start) {
-    vector<int> distance(adj.size(), -1);
-    queue<int> q;
-    q.push(start);
-    distance[start] = 0;
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (int v : adj[u]) {
-            if (distance[v] != -1) continue;
-            distance[v] = distance[u] + 1;
-            q.push(v);
-        }
-    }
-    return distance;
-}
-
-// Single-source shortest paths for non-negative edge weights.
+// Dijkstra for single-source shortest paths with non-negative edge weights.
 vector<ll> dijkstra(const vector<vector<pair<int, ll>>>& adj, int start) {
+    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+
     vector<ll> distance(adj.size(), INF);
     priority_queue<pair<ll, int>, vector<pair<ll, int>>,
                    greater<pair<ll, int>>>
@@ -155,6 +220,8 @@ vector<ll> dijkstra(const vector<vector<pair<int, ll>>>& adj, int start) {
     }
     return distance;
 }
+
+// =========================== Directed Graphs ===========================
 
 // Kahn's algorithm. Returns an empty vector if the graph has a cycle.
 vector<int> topologicalSort(const vector<vector<int>>& adj) {

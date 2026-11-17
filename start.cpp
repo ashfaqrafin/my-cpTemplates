@@ -1,80 +1,84 @@
-
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
-using namespace std;
-template <typename t>
-using ordered_set = tree<t, null_type, less<t>, rb_tree_tag, tree_order_statistics_node_update>;
-template <class t>
-using ordered_multiset = tree<t, null_type, less_equal<t>, rb_tree_tag, tree_order_statistics_node_update>;
-const int mod = 1e9 + 7;
-/* const int mod=998244353; */
 
-// macros
-#define ios std::ios::sync_with_stdio(false); cin.tie(nullptr);cout.tie(nullptr);cout.precision(numeric_limits<double>::max_digits10);
-#define sq(a) (a) * (a)
-#define int long long
-#define ll long long
-#define ld long double 
-#define vl __int128_t
-#define MAX LLONG_MAX
-#define MIN LLONG_MIN
-#define all(container) container.begin(), container.end()
+using namespace std;
+using namespace __gnu_pbds;
+
+using int64 = long long;
+using int128 = __int128_t;
+
+template <typename T>
+using orderedSet =
+    tree<T, null_type, less<T>, rb_tree_tag,
+         tree_order_statistics_node_update>;
+
+template <typename T>
+using orderedMultiset =
+    tree<T, null_type, less_equal<T>, rb_tree_tag,
+         tree_order_statistics_node_update>;
+
+constexpr int64 MOD = 1'000'000'007;
+// constexpr int64 MOD = 998244353;
+
+// ============================== Macros ==============================
+
+#define all(x) (x).begin(), (x).end()
+#define pb push_back
+#define sz(x) (static_cast<int>((x).size()))
 #define ff first
 #define ss second
-#define pb push_back
-#define sz(x) ((int)(x).size())
-#define endl '\n'
-#define up(x,y) ((x+y-1)/y)
-// loop
-#define rep(v, s, e) for (int v = s; v < e; v++)
-#define repe(v, s, e) for (int v = s; v <= e; v++)
-#define repa(v, container) for (auto &v : container)
-// vector
-typedef vector<int> vi;
-typedef vector<vector<int>> vvi;
-typedef vector<char> vc;
-typedef vector<bool> vb;
-typedef vector<string> s;
-typedef pair<int, int> pii;
-// heap
-#define maxheap(t) priority_queue<t, vector<t>>
-#define minheap(t) priority_queue<t, vector<t>, greater<t>>
-// modular operations
-int power_mod(int v, int n) {v %= mod;if(v == 0) return 0;n %= (mod - 1); int ret = 1;for(; n; n >>= 1, v = (v * v) % mod) if(n & 1) ret = (ret * v) % mod;return ret;}
-int mod_sub(int x, int y) {x %= mod; y %= mod;return (x + mod - y) % mod;}
-int mod_add(int x, int y) {x %= mod; y %= mod;return (x + y) % mod;}
-int mod_mul(int x, int y) {x %= mod; y %= mod;return (x * y) % mod;}
-int mod_inv(int x) {x %= mod;return power_mod(x, mod - 2);}
-int mod_div(int x, int y) {x %= mod; y %= mod;return mod_mul(x, mod_inv(y));}
-// modular operations
-template<class t> bool is_prime(t n){if(n<2)return 0;if(n%2==0)return n==2;for(t i=3;i<=n/i;i+=2)if(n%i==0)return 0;return 1;}
 
-// bit operations
-#define setcnt(x)   (popcount(static_cast<unsigned long long>(x)))
-#define is_pow2(x)  ((x) > 0 && has_single_bit(static_cast<unsigned long long>(x)))
-#define nxt_pow2(x) (bit_ceil(static_cast<unsigned long long>(x)))
-#define prv_pow2(x) (bit_floor(static_cast<unsigned long long>(x)))
-#define msb_idx(x)  ((x) == 0 ? -1 : (int)bit_width(static_cast<unsigned long long>(x)) - 1)
-// numbers
-ld logc(ld base, ld x) {return log2(x) /log2(base);} 
-ll xor_upto(int n){return n%4==0?n:n%4==1?1:n%4==2?n+1:0;}
-ll power(int base, int exp) { int res = 1; while (exp > 0) { if (exp&1) { res *= base; } base *= base; exp>>=1; } return res; }
-//rest
+using vi = vector<int64>;
+using vvi = vector<vi>;
+using pii = pair<int64, int64>;
 
-void solve(){
+// ========================= Modular Arithmetic ======================
+
+int64 powerMod(int64 base, int64 exponent, int64 mod = MOD) {
+    base %= mod;
+    int64 result = 1;
+    while (exponent > 0) {
+        if (exponent & 1) result = result * base % mod;
+        base = base * base % mod;
+        exponent >>= 1;
+    }
+    return result;
 }
 
+int64 modAdd(int64 x, int64 y) {
+    x %= MOD;
+    y %= MOD;
+    return (x + y) % MOD;
+}
 
+int64 modSub(int64 x, int64 y) {
+    x %= MOD;
+    y %= MOD;
+    return (x - y + MOD) % MOD;
+}
 
-signed main(void){
-    ios;
-    int t;
-    cin >> t;
-    while(t--)solve();
+int64 modMul(int64 x, int64 y) {
+    x %= MOD;
+    y %= MOD;
+    return x * y % MOD;
+}
 
+int64 modInv(int64 x) {
+    return powerMod(x, MOD - 2);
+}
+
+// =============================== Solver ============================
+
+void solve() {
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int testCases = 1;
+    cin >> testCases;
+    while (testCases--) solve();
     return 0;
 }
-
-

@@ -1,43 +1,46 @@
-/*modular operations*/
-int power_mod(int v, int n,int mod)
-{
-    v %= mod;
-    if (v == 0)
-        return 0;
-    n %= (mod - 1);
-    int ret = 1;
-    for (; n; n >>= 1, v = (v * v) % mod)
-        if (n & 1)
-            ret = (ret * v) % mod;
-    return ret;
+#include <cstdint>
+
+// ============================ Modular Arithmetic ============================
+
+int powerMod(long long base, long long exponent, long long mod) {
+    base %= mod;
+    if (base == 0) return 0;
+    exponent %= mod - 1;
+
+    long long result = 1;
+    while (exponent > 0) {
+        if (exponent & 1) result = result * base % mod;
+        base = base * base % mod;
+        exponent >>= 1;
+    }
+    return static_cast<int>(result);
 }
-int mod_sub(int x, int y,int mod)
-{
+
+int modAdd(long long x, long long y, long long mod) {
     x %= mod;
     y %= mod;
-    return (x + mod - y) % mod;
+    return static_cast<int>((x + y) % mod);
 }
-int mod_add(int x, int y,int mod)
-{
+
+int modSub(long long x, long long y, long long mod) {
     x %= mod;
     y %= mod;
-    return (x + y) % mod;
+    return static_cast<int>((x - y + mod) % mod);
 }
-int mod_mul(int x, int y,int mod)
-{
+
+int modMul(long long x, long long y, long long mod) {
     x %= mod;
     y %= mod;
-    return (x * y) % mod;
+    return static_cast<int>(x * y % mod);
 }
-int mod_inv(int x,int mod)
-{
+
+int modInv(long long x, long long mod) {
     x %= mod;
-    return power_mod(x, mod - 2,mod);
+    return powerMod(x, mod - 2, mod);
 }
-int mod_div(int x, int y,int mod)
-{
+
+int modDiv(long long x, long long y, long long mod) {
     x %= mod;
     y %= mod;
-    return mod_mul(x, mod_inv(y,mod),mod);
+    return modMul(x, modInv(y, mod), mod);
 }
-/*modular operations*/

@@ -74,6 +74,85 @@ vector<int> dfsRecursive(const vector<vector<int>>& adj, int start) {
     return order;
 }
 
+// =========================== Graph Coloring ===========================
+
+// Two-coloring for an undirected graph.
+// color[u] is 0 or 1 for the two groups; -1 means unvisited.
+// Returns false if an edge connects two vertices in the same group.
+bool bipartiteColoring(const vector<vector<int>>& adj, vector<int>& color) {
+    int n = static_cast<int>(adj.size());
+    color.assign(n, -1);
+
+    for (int start = 0; start < n; ++start) {
+        if (color[start] != -1) continue;
+
+        queue<int> q;
+        q.push(start);
+        color[start] = 0;
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+
+            for (int v : adj[u]) {
+                if (color[v] == -1) {
+                    color[v] = color[u] ^ 1;
+                    q.push(v);
+                } else if (color[v] == color[u]) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+bool bipartiteColoringDfs(const vector<vector<int>>& adj,
+                          int u,
+                          int currentColor,
+                          vector<int>& color) {
+    color[u] = currentColor;
+
+    for (int v : adj[u]) {
+        if (color[v] == -1) {
+            if (!bipartiteColoringDfs(adj, v, currentColor ^ 1, color)) {
+                return false;
+            }
+        } else if (color[v] == color[u]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Recursive two-coloring for an undirected graph.
+bool bipartiteColoringRecursive(const vector<vector<int>>& adj,
+                                vector<int>& color) {
+    int n = static_cast<int>(adj.size());
+    color.assign(n, -1);
+
+    for (int start = 0; start < n; ++start) {
+        if (color[start] != -1) continue;
+        if (!bipartiteColoringDfs(adj, start, 0, color)) return false;
+    }
+
+    return true;
+}
+
+// Convenience wrapper when only the bipartite result is needed.
+bool isBipartite(const vector<vector<int>>& adj) {
+    vector<int> color;
+    return bipartiteColoring(adj, color);
+}
+
+// Convenience wrapper for recursive bipartite checking.
+bool isBipartiteRecursive(const vector<vector<int>>& adj) {
+    vector<int> color;
+    return bipartiteColoringRecursive(adj, color);
+}
+
 // Iterative grid DFS. '#' is blocked; returns visited cells in DFS order.
 vector<pair<int, int>> gridDfs(const vector<string>& grid, pair<int, int> start) {
     if (grid.empty() || grid[0].empty()) return {};

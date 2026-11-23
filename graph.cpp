@@ -2,41 +2,47 @@
 using namespace std;
 
 using ll = long long;
-const ll INF = numeric_limits<ll>::max() / 4;
+const ll INF = 4e18;
+
 
 // ============================== Disjoint Set Union ==============================
 
+// Stores connected components for 0-based vertices.
 struct DSU {
-    vector<int> parent, size;
+    vector<int> parent, sz;
 
-    DSU(int n) : parent(n + 1), size(n + 1, 1) {
+    DSU(int n) : parent(n), sz(n, 1) {
         iota(parent.begin(), parent.end(), 0);
     }
 
     int find(int u) {
-        return parent[u] == u ? u : parent[u] = find(parent[u]);
+        if (parent[u] == u) return u;
+        return parent[u] = find(parent[u]);
     }
 
     bool unite(int u, int v) {
         u = find(u);
         v = find(v);
         if (u == v) return false;
-        if (size[u] < size[v]) swap(u, v);
+        if (sz[u] < sz[v]) swap(u, v);
         parent[v] = u;
-        size[u] += size[v];
+        sz[u] += sz[v];
         return true;
     }
 };
+// DSU
+
 
 // =========================== Graph Traversals ===========================
 
-// Iterative DFS. Unreachable vertices are omitted.
+// Iterative DFS from start. Returns visited vertices in DFS order.
+// The adjacency list must be 0-based.
 vector<int> dfs(const vector<vector<int>>& adj, int start) {
-    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
-
-    vector<bool> visited(adj.size(), false);
+    int n = adj.size();
+    vector<bool> visited(n, false);
     vector<int> order;
     stack<int> st;
+
     st.push(start);
     visited[start] = true;
 
@@ -45,50 +51,72 @@ vector<int> dfs(const vector<vector<int>>& adj, int start) {
         st.pop();
         order.push_back(u);
 
-        for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it) {
-            int v = *it;
-            if (visited[v]) continue;
-            visited[v] = true;
-            st.push(v);
+        for (int v : adj[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                st.push(v);
+            }
         }
     }
     return order;
 }
+// dfs
 
-// Recursive DFS alternative. Prefer this for small or moderate depths.
-vector<int> dfsRecursive(const vector<vector<int>>& adj, int start) {
-    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+// Recursive DFS helper. Call dfsRecursive(start, adj, visited, order).
+// This visits each reachable vertex once.
+void dfsRecursive(int u,
+                  const vector<vector<int>>& adj,
+                  vector<bool>& visited,
+                  vector<int>& order) {
+    visited[u] = true;
+    order.push_back(u);
 
-    vector<bool> visited(adj.size(), false);
-    vector<int> order;
-
-    function<void(int)> visit = [&](int u) {
-        visited[u] = true;
-        order.push_back(u);
-        for (int v : adj[u]) {
-            if (!visited[v]) visit(v);
-        }
-    };
-
-    visit(start);
-    return order;
+    for (int v : adj[u]) {
+        if (!visited[v]) dfsRecursive(v, adj, visited, order);
+    }
 }
+// dfsRecursive
 
-// =========================== Graph Coloring ===========================
+// BFS from start. Returns the shortest number of edges from start.
+// Unreachable vertices have distance -1.
+vector<int> bfs(const vector<vector<int>>& adj, int start) {
+    int n = adj.size();
+    vector<int> distance(n, -1);
+    queue<int> q;
 
-// Two-coloring for an undirected graph.
-// color[u] is 0 or 1 for the two groups; -1 means unvisited.
-// Returns false if an edge connects two vertices in the same group.
-bool bipartiteColoring(const vector<vector<int>>& adj, vector<int>& color) {
-    int n = static_cast<int>(adj.size());
-    color.assign(n, -1);
+    distance[start] = 0;
+    q.push(start);
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        for (int v : adj[u]) {
+            if (distance[v] == -1) {
+                distance[v] = distance[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+    return distance;
+}
+// bfs
+
+
+// =========================== Bipartite Graph ===========================
+
+// Returns true when every connected component can use two colors.
+// An edge between equal colors means the graph is not bipartite.
+bool bipartite(const vector<vector<int>>& adj) {
+    int n = adj.size();
+    vector<int> color(n, -1);
 
     for (int start = 0; start < n; ++start) {
         if (color[start] != -1) continue;
 
         queue<int> q;
-        q.push(start);
         color[start] = 0;
+        q.push(start);
 
         while (!q.empty()) {
             int u = q.front();
@@ -104,214 +132,150 @@ bool bipartiteColoring(const vector<vector<int>>& adj, vector<int>& color) {
             }
         }
     }
-
     return true;
 }
+// bipartite
 
-bool bipartiteColoringDfs(const vector<vector<int>>& adj,
-                          int u,
-                          int currentColor,
-                          vector<int>& color) {
-    color[u] = currentColor;
+// Recursive bipartite helper. Start by assigning color 0 to u.
+// Pass -1 as the initial color of every vertex.
+bool bipartiteRecursive(int u,
+                        int color,
+                        const vector<vector<int>>& adj,
+                        vector<int>& colors) {
+    colors[u] = color;
 
     for (int v : adj[u]) {
-        if (color[v] == -1) {
-            if (!bipartiteColoringDfs(adj, v, currentColor ^ 1, color)) {
-                return false;
-            }
-        } else if (color[v] == color[u]) {
+        if (colors[v] == -1) {
+            if (!bipartiteRecursive(v, color ^ 1, adj, colors)) return false;
+        } else if (colors[v] == colors[u]) {
             return false;
         }
     }
-
     return true;
 }
+// bipartiteRecursive helper
 
-// Recursive two-coloring for an undirected graph.
-bool bipartiteColoringRecursive(const vector<vector<int>>& adj,
-                                vector<int>& color) {
-    int n = static_cast<int>(adj.size());
-    color.assign(n, -1);
+// Recursive bipartite check for the whole graph.
+bool bipartiteRecursive(const vector<vector<int>>& adj) {
+    int n = adj.size();
+    vector<int> colors(n, -1);
 
-    for (int start = 0; start < n; ++start) {
-        if (color[start] != -1) continue;
-        if (!bipartiteColoringDfs(adj, start, 0, color)) return false;
-    }
-
-    return true;
-}
-
-// Convenience wrapper when only the bipartite result is needed.
-bool isBipartite(const vector<vector<int>>& adj) {
-    vector<int> color;
-    return bipartiteColoring(adj, color);
-}
-
-// Convenience wrapper for recursive bipartite checking.
-bool isBipartiteRecursive(const vector<vector<int>>& adj) {
-    vector<int> color;
-    return bipartiteColoringRecursive(adj, color);
-}
-
-// Iterative grid DFS. '#' is blocked; returns visited cells in DFS order.
-vector<pair<int, int>> gridDfs(const vector<string>& grid, pair<int, int> start) {
-    if (grid.empty() || grid[0].empty()) return {};
-    int n = grid.size();
-    int m = grid[0].size();
-    const int dr[] = {-1, 1, 0, 0};
-    const int dc[] = {0, 0, -1, 1};
-    vector<vector<bool>> visited(n, vector<bool>(m));
-    vector<pair<int, int>> order;
-    stack<pair<int, int>> st;
-
-    auto [sr, sc] = start;
-    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
-        return order;
-    }
-
-    st.push(start);
-    visited[sr][sc] = true;
-    while (!st.empty()) {
-        auto [r, c] = st.top();
-        st.pop();
-        order.push_back({r, c});
-        for (int k = 3; k >= 0; --k) {
-            int nr = r + dr[k], nc = c + dc[k];
-            if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
-            if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
-            visited[nr][nc] = true;
-            st.push({nr, nc});
+    for (int u = 0; u < n; ++u) {
+        if (colors[u] == -1 &&
+            !bipartiteRecursive(u, 0, adj, colors)) {
+            return false;
         }
     }
-    return order;
+    return true;
 }
+// bipartiteRecursive
 
-// Recursive grid DFS alternative.
-vector<pair<int, int>> gridDfsRecursive(const vector<string>& grid,
-                                        pair<int, int> start) {
-    if (grid.empty() || grid[0].empty()) return {};
 
+// =========================== Grid Traversal ===========================
+
+// Recursive DFS helper for a grid using four directions.
+// '#' is blocked. Mark visited and fill order before recursive calls.
+void gridDfs(const vector<string>& grid,
+             int r,
+             int c,
+             vector<vector<bool>>& visited,
+             vector<pair<int, int>>& order) {
     int n = grid.size();
     int m = grid[0].size();
-    const int dr[] = {-1, 1, 0, 0};
-    const int dc[] = {0, 0, -1, 1};
-    vector<vector<bool>> visited(n, vector<bool>(m, false));
-    vector<pair<int, int>> order;
+    int dr[4] = {-1, 1, 0, 0};
+    int dc[4] = {0, 0, -1, 1};
 
-    auto [sr, sc] = start;
-    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
-        return order;
+    visited[r][c] = true;
+    order.push_back({r, c});
+
+    for (int k = 0; k < 4; ++k) {
+        int nr = r + dr[k];
+        int nc = c + dc[k];
+
+        if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
+        if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
+
+        gridDfs(grid, nr, nc, visited, order);
     }
+}
+// gridDfs
 
-    function<void(int, int)> visit = [&](int r, int c) {
-        visited[r][c] = true;
-        order.push_back({r, c});
+// BFS in a grid using four directions.
+// '#' is blocked and unreachable cells have distance -1.
+vector<vector<int>> gridBfs(const vector<string>& grid, int sr, int sc) {
+    int n = grid.size();
+    int m = grid[0].size();
+    vector<vector<int>> distance(n, vector<int>(m, -1));
+    queue<pair<int, int>> q;
+    int dr[4] = {-1, 1, 0, 0};
+    int dc[4] = {0, 0, -1, 1};
+
+    distance[sr][sc] = 0;
+    q.push({sr, sc});
+
+    while (!q.empty()) {
+        auto [r, c] = q.front();
+        q.pop();
 
         for (int k = 0; k < 4; ++k) {
             int nr = r + dr[k];
             int nc = c + dc[k];
-            if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
-            if (grid[nr][nc] == '#' || visited[nr][nc]) continue;
-            visit(nr, nc);
-        }
-    };
 
-    visit(sr, sc);
-    return order;
-}
-
-// Unweighted graph BFS. Unreachable vertices have distance -1.
-vector<int> bfs(const vector<vector<int>>& adj, int start) {
-    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
-
-    vector<int> distance(adj.size(), -1);
-    queue<int> q;
-    q.push(start);
-    distance[start] = 0;
-
-    while (!q.empty()) {
-        int u = q.front();
-        q.pop();
-        for (int v : adj[u]) {
-            if (distance[v] != -1) continue;
-            distance[v] = distance[u] + 1;
-            q.push(v);
-        }
-    }
-    return distance;
-}
-
-// Four-direction grid BFS. '#' is blocked; unreachable cells have distance -1.
-vector<vector<int>> gridBfs(const vector<string>& grid, pair<int, int> start) {
-    if (grid.empty() || grid[0].empty()) return {};
-    int n = grid.size();
-    int m = grid[0].size();
-    const int dr[] = {-1, 1, 0, 0};
-    const int dc[] = {0, 0, -1, 1};
-    vector<vector<int>> distance(n, vector<int>(m, -1));
-    queue<pair<int, int>> q;
-
-    auto [sr, sc] = start;
-    if (sr < 0 || sr >= n || sc < 0 || sc >= m || grid[sr][sc] == '#') {
-        return distance;
-    }
-
-    q.push(start);
-    distance[sr][sc] = 0;
-    while (!q.empty()) {
-        auto [r, c] = q.front();
-        q.pop();
-        for (int k = 0; k < 4; ++k) {
-            int nr = r + dr[k], nc = c + dc[k];
             if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
             if (grid[nr][nc] == '#' || distance[nr][nc] != -1) continue;
+
             distance[nr][nc] = distance[r][c] + 1;
             q.push({nr, nc});
         }
     }
     return distance;
 }
+// gridBfs
+
 
 // =========================== Shortest Paths ===========================
 
-// Dijkstra for single-source shortest paths with non-negative edge weights.
+// Dijkstra for non-negative weighted directed or undirected edges.
+// Returns INF for unreachable vertices.
 vector<ll> dijkstra(const vector<vector<pair<int, ll>>>& adj, int start) {
-    if (start < 0 || start >= static_cast<int>(adj.size())) return {};
+    int n = adj.size();
+    vector<ll> distance(n, INF);
+    priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<>> pq;
 
-    vector<ll> distance(adj.size(), INF);
-    priority_queue<pair<ll, int>, vector<pair<ll, int>>,
-                   greater<pair<ll, int>>>
-        pq;
     distance[start] = 0;
     pq.push({0, start});
 
     while (!pq.empty()) {
-        auto [currentDistance, u] = pq.top();
+        auto [du, u] = pq.top();
         pq.pop();
-        if (currentDistance != distance[u]) continue;
+        if (du != distance[u]) continue;
 
-        for (auto [v, weight] : adj[u]) {
-            if (distance[v] > currentDistance + weight) {
-                distance[v] = currentDistance + weight;
+        for (auto [v, w] : adj[u]) {
+            if (distance[v] > du + w) {
+                distance[v] = du + w;
                 pq.push({distance[v], v});
             }
         }
     }
     return distance;
 }
+// dijkstra
 
-// =========================== Directed Graphs ===========================
 
-// Kahn's algorithm. Returns an empty vector if the graph has a cycle.
+// =========================== Directed Graph ===========================
+
+// Kahn's algorithm for a 0-based directed graph.
+// Returns an empty vector if the graph contains a cycle.
 vector<int> topologicalSort(const vector<vector<int>>& adj) {
-    int n = static_cast<int>(adj.size()) - 1;
-    vector<int> indegree(n + 1);
-    for (int u = 1; u <= n; ++u) {
+    int n = adj.size();
+    vector<int> indegree(n, 0);
+
+    for (int u = 0; u < n; ++u) {
         for (int v : adj[u]) ++indegree[v];
     }
 
     queue<int> q;
-    for (int u = 1; u <= n; ++u) {
+    for (int u = 0; u < n; ++u) {
         if (indegree[u] == 0) q.push(u);
     }
 
@@ -320,11 +284,13 @@ vector<int> topologicalSort(const vector<vector<int>>& adj) {
         int u = q.front();
         q.pop();
         order.push_back(u);
+
         for (int v : adj[u]) {
             if (--indegree[v] == 0) q.push(v);
         }
     }
 
-    if (static_cast<int>(order.size()) != n) return {};
+    if ((int) order.size() != n) return {};
     return order;
 }
+// topologicalSort
